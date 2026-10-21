@@ -1,0 +1,129 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ARCHIVE BULLETIN | THE UNKNOWN ARCHIVE</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 30px 18px;
+      background: #100e10;
+      color: #ded6d0;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+    main {
+      max-width: 850px;
+      margin: 0 auto;
+    }
+    a { color: #d4b69e; }
+    .eyebrow {
+      color: #b59a87;
+      letter-spacing: .2em;
+      font-size: .8rem;
+    }
+    h1 {
+      font-weight: normal;
+      letter-spacing: .1em;
+    }
+    .news-item {
+      border-top: 1px solid #514047;
+      padding: 24px 0;
+    }
+    .news-item small { color: #b59a87; }
+    .news-item p {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      line-height: 1.9;
+    }
+    select {
+      background: #211b20;
+      color: #eee;
+      padding: 10px;
+      border: 1px solid #514047;
+      margin: 10px 0 25px;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">THE UNKNOWN ARCHIVE</p>
+  <h1>ARCHIVE BULLETIN</h1>
+  <p>보관소에 남겨진 모든 공지와 기록.</p>
+  <p><a href="index.html">← 메인으로 돌아가기</a></p>
+
+  <label for="category-filter">소식 종류:</label>
+  <select id="category-filter">
+    <option value="전체">전체</option>
+    <option value="공지">공지</option>
+    <option value="세계관 소식">세계관 소식</option>
+    <option value="업데이트">업데이트</option>
+    <option value="캐릭터 추가">캐릭터 추가</option>
+  </select>
+
+  <div id="all-news-list">기록을 불러오는 중...</div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script>
+const list = document.getElementById("all-news-list");
+const filter = document.getElementById("category-filter");
+let allNews = [];
+
+function renderNews() {
+  list.replaceChildren();
+
+  const selected = filter.value;
+  const filtered = allNews.filter(item =>
+    selected === "전체" || item.category === selected
+  );
+
+  if (filtered.length === 0) {
+    list.textContent = "해당하는 소식이 없습니다.";
+    return;
+  }
+
+  for (const item of filtered) {
+    const article = document.createElement("article");
+    article.className = "news-item";
+
+    const meta = document.createElement("small");
+    meta.textContent =
+      item.category + " · " +
+      new Date(item.created_at).toLocaleDateString("ko-KR");
+
+    const title = document.createElement("h2");
+    title.textContent = item.title;
+
+    const body = document.createElement("p");
+    body.textContent = item.body;
+
+    article.append(meta, title, body);
+    list.append(article);
+  }
+}
+
+async function loadNews() {
+  try {
+    const { data, error } = await window.archiveSupabase
+      .from("archive_news")
+      .select("id, category, title, body, created_at")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    allNews = data || [];
+    renderNews();
+  } catch (error) {
+    console.error(error);
+    list.textContent =
+      "소식을 불러오지 못했습니다. 데이터베이스 설정을 확인해 주세요.";
+  }
+}
+
+filter.addEventListener("change", renderNews);
+loadNews();
+</script>
+</body>
+</html>

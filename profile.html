@@ -1,0 +1,291 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PERSONNEL RECORD | THE UNKNOWN ARCHIVE</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse at top, #302027, transparent 65%),
+        #101014;
+      color: #eee8dc;
+      font-family: "Malgun Gothic", sans-serif;
+    }
+
+    .topbar {
+      padding: 22px 8%;
+      border-bottom: 1px solid #39333b;
+      color: #c6a878;
+      font-size: 12px;
+      letter-spacing: 4px;
+    }
+
+    main {
+      width: min(900px, 90%);
+      margin: auto;
+      padding: 55px 0 80px;
+    }
+
+    a {
+      color: #c6a878;
+      text-decoration: none;
+    }
+
+    a:hover { color: #eee8dc; }
+
+    .back {
+      display: inline-block;
+      margin-bottom: 45px;
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
+
+    .eyebrow {
+      color: #b58d78;
+      font-size: 11px;
+      letter-spacing: 4px;
+    }
+
+    h1 {
+      margin: 15px 0;
+      font-family: Georgia, serif;
+      font-size: clamp(40px, 8vw, 70px);
+      font-weight: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .category {
+      color: #c6a878;
+      font-size: 12px;
+      letter-spacing: 2px;
+    }
+
+    .record-layout {
+      display: grid;
+      grid-template-columns: minmax(180px, .8fr) 1.2fr;
+      gap: 35px;
+      margin-top: 35px;
+    }
+
+    .portrait {
+      min-height: 350px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #776174;
+      background:
+        radial-gradient(ellipse at center, #69333d, transparent 65%),
+        #211a23;
+      color: #d8bd91;
+      font-family: Georgia, serif;
+      font-size: 120px;
+    }
+
+    .intro {
+      color: #c7bbb5;
+      font-size: 14px;
+      line-height: 2;
+      margin-top: 0;
+    }
+
+    .divider {
+      width: 70px;
+      margin: 30px 0;
+      border-top: 1px solid #b58d78;
+    }
+
+    h2 {
+      color: #d8bd91;
+      font-size: 16px;
+      font-weight: normal;
+      letter-spacing: 2px;
+    }
+
+    .fields {
+      margin-top: 28px;
+      border-top: 1px solid #51434a;
+    }
+
+    .field {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 15px;
+      padding: 17px 0;
+      border-bottom: 1px solid #39333b;
+      font-size: 13px;
+      line-height: 1.9;
+    }
+
+    .label { color: #c6a878; }
+
+    .note {
+      margin-top: 35px;
+      padding: 25px;
+      border-left: 2px solid #b58d78;
+      background: #1b171c;
+      color: #c7bbb5;
+      font-size: 13px;
+      line-height: 2;
+      white-space: pre-line;
+    }
+
+    .error {
+      padding: 30px;
+      border: 1px solid #51434a;
+      color: #c7bbb5;
+      line-height: 2;
+    }
+
+    footer {
+      padding: 25px;
+      border-top: 1px solid #39333b;
+      text-align: center;
+      color: #71696b;
+      font-size: 11px;
+      letter-spacing: 2px;
+    }
+
+    @media (max-width: 600px) {
+      .record-layout { grid-template-columns: 1fr; }
+      .portrait { min-height: 260px; }
+      .field { grid-template-columns: 75px 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">T H E   A R C H I V E</header>
+
+  <main>
+    <a class="back" href="index.html">← 기록 보관소로 돌아가기</a>
+
+    <div id="record">
+      <p class="eyebrow">PERSONNEL FILE</p>
+      <p class="intro">기록을 불러오는 중...</p>
+    </div>
+  </main>
+
+  <footer>THE UNKNOWN ARCHIVE · RESTRICTED COLLECTION</footer>
+
+  <script>
+    // 메인 도감과 동일한 캐릭터 정보를 사용해.
+    // 새 캐릭터를 추가할 때 이 목록에도 정보를 추가해 줘.
+
+    const characters = [
+      {
+        id: "001",
+        name: "아르카",
+        symbol: "A",
+        category: "분류 불명 / UNKNOWN",
+        intro: "최초로 등록된 미확인 인물. 일부 기록이 삭제되어 있다.",
+        age: "불명",
+        affiliation: "기록 보관소",
+        personality: "침착하고 비밀이 많다.",
+        appearance: "긴 검은 머리, 붉은 눈동자.",
+        note: "열람 주의. 본 기록에는 확인되지 않은 정보가 포함되어 있다."
+      },
+      {
+        id: "002",
+        name: "에녹",
+        symbol: "E",
+        category: "관리 대상 / SUBJECT",
+        intro: "보관소의 복도에서 여러 차례 목격되었다.",
+        age: "기록 누락",
+        affiliation: "미등록",
+        personality: "무심하지만 관찰력이 뛰어나다.",
+        appearance: "은빛 머리카락, 창백한 피부.",
+        note: "목격 기록의 시간대가 서로 일치하지 않는다."
+      },
+      {
+        id: "003",
+        name: "루시안",
+        symbol: "L",
+        category: "접근 제한 / RESTRICTED",
+        intro: "상세 정보에 접근할 때마다 기록 일부가 사라진다.",
+        age: "비공개",
+        affiliation: "분류 불가",
+        personality: "친절하고 능청스럽다.",
+        appearance: "짙은 머리카락, 금빛 눈.",
+        note: "관리자 승인 없이 기록을 외부로 반출할 수 없다."
+      }
+    ];
+
+    const id = new URLSearchParams(location.search).get("id");
+    const character = characters.find(item => item.id === id);
+    const record = document.getElementById("record");
+
+    function addText(tag, className, text) {
+      const element = document.createElement(tag);
+      if (className) element.className = className;
+      element.textContent = text;
+      return element;
+    }
+
+    if (!character) {
+      record.replaceChildren(
+        addText("p", "eyebrow", "RECORD NOT FOUND"),
+        addText("h1", "", "기록을 찾을 수 없습니다."),
+        addText("p", "error", "주소가 올바르지 않거나 등록되지 않은 기록입니다.")
+      );
+    } else {
+      document.title =
+        character.name + " | THE UNKNOWN ARCHIVE";
+
+      const eyebrow = addText(
+        "p", "eyebrow", "RECORD NO. " + character.id
+      );
+
+      const title = addText("h1", "", character.name);
+      const category = addText("p", "category", character.category);
+
+      const layout = document.createElement("div");
+      layout.className = "record-layout";
+
+      const portrait = addText("div", "portrait", character.symbol);
+      const summary = document.createElement("div");
+
+      summary.append(
+        addText("p", "intro", character.intro),
+        addText("div", "divider", ""),
+        addText("h2", "", "PERSONAL DATA")
+      );
+
+      const fields = document.createElement("div");
+      fields.className = "fields";
+
+      [
+        ["나이", character.age],
+        ["소속", character.affiliation],
+        ["성격", character.personality],
+        ["외형", character.appearance]
+      ].forEach(([label, value]) => {
+        const row = document.createElement("div");
+        row.className = "field";
+        row.append(
+          addText("div", "label", label),
+          addText("div", "", value)
+        );
+        fields.appendChild(row);
+      });
+
+      summary.appendChild(fields);
+      layout.append(portrait, summary);
+
+      const noteTitle = addText(
+        "h2", "", "RESTRICTED NOTE"
+      );
+      const note = addText("div", "note", character.note);
+
+      record.replaceChildren(
+        eyebrow, title, category, layout, noteTitle, note
+      );
+    }
+  </script>
+</body>
+</html>

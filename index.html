@@ -1,0 +1,434 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>THE UNKNOWN ARCHIVE</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #101014;
+      color: #eee8dc;
+      font-family: "Malgun Gothic", sans-serif;
+    }
+
+    .topbar {
+      padding: 22px 8%;
+      border-bottom: 1px solid #39333b;
+      color: #c6a878;
+      letter-spacing: 4px;
+      font-size: 12px;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: auto;
+      padding: 75px 24px;
+    }
+
+    .eyebrow {
+      color: #b58d78;
+      letter-spacing: 4px;
+      font-size: 11px;
+    }
+
+    h1 {
+      margin: 20px 0;
+      font-family: Georgia, serif;
+      font-size: clamp(38px, 7vw, 76px);
+      font-weight: normal;
+      letter-spacing: 2px;
+    }
+
+    .intro {
+      color: #aaa3a0;
+      line-height: 2;
+      font-size: 14px;
+    }
+
+    .divider {
+      width: 80px;
+      margin: 32px 0;
+      border-top: 1px solid #b58d78;
+    }
+
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin: 55px 0 22px;
+    }
+
+    h2 { font-weight: normal; letter-spacing: 2px; }
+
+    .search {
+      width: 240px;
+      max-width: 100%;
+      padding: 12px;
+      color: #eee8dc;
+      background: #191419;
+      border: 1px solid #51434a;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      display: block;
+      padding: 0;
+      text-align: left;
+      color: #eee8dc;
+      background: #1b171c;
+      border: 1px solid #51434a;
+      text-decoration: none;
+      transition: transform .25s, border-color .25s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      border-color: #c6a878;
+    }
+
+    .portrait {
+      min-height: 240px;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(ellipse at center, #59303a, transparent 65%),
+        #211a23;
+      border-bottom: 1px solid #51434a;
+      color: #d8bd91;
+      font-family: Georgia, serif;
+      font-size: 76px;
+    }
+
+    .card-content { padding: 18px; }
+
+    .number {
+      color: #b58d78;
+      font-size: 11px;
+      letter-spacing: 2px;
+    }
+
+    .name {
+      margin: 12px 0;
+      font-size: 22px;
+      font-weight: normal;
+    }
+
+    .category {
+      color: #c6a878;
+      font-size: 11px;
+    }
+
+    .description {
+      color: #aaa3a0;
+      font-size: 13px;
+      line-height: 1.9;
+      min-height: 48px;
+    }
+
+    .open {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid #39333b;
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+
+    #empty {
+      display: none;
+      padding: 40px 0;
+      color: #aaa3a0;
+    }
+
+    footer {
+      padding: 30px;
+      text-align: center;
+      color: #71696b;
+      border-top: 1px solid #39333b;
+      font-size: 11px;
+      letter-spacing: 2px;
+    }
+
+    @media (max-width: 700px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .section-heading { align-items: stretch; flex-direction: column; }
+      .search { width: 100%; }
+      .portrait { min-height: 180px; }
+    }
+
+    @media (max-width: 430px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">T H E   A R C H I V E</header>
+
+  <main>
+    <p class="eyebrow">A RECORD OF THE UNKNOWN</p>
+    <h1>THE UNKNOWN<br>ARCHIVE</h1>
+
+    <p class="intro">
+      기록되지 않은 세계가 있다.<br>
+      잊힌 이름과 사라진 존재들.<br>
+      이곳은 그 흔적을 수집하는 비밀 기록 보관소.
+    </p>
+
+    <div class="divider"></div>
+
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">PERSONNEL DATABASE</p>
+        <h2>인물 기록</h2>
+      </div>
+      <input id="search" class="search" type="search"
+        placeholder="이름 또는 분류 검색...">
+    </div>
+
+    <div id="character-grid" class="grid"></div>
+    <div id="empty">일치하는 기록이 없습니다.</div>
+  </main>
+
+  <footer>THE UNKNOWN ARCHIVE · EST. UNKNOWN</footer>
+
+  <script>
+    // 캐릭터를 추가할 때 이 목록에 정보를 적어 줘.
+    const characters = [
+      {
+        id: "001",
+        name: "아르카",
+        symbol: "A",
+        category: "분류 불명 / UNKNOWN",
+        description: "기록의 가장 깊은 곳에서 발견된 존재.",
+        intro: "최초로 등록된 미확인 인물. 일부 기록이 삭제되어 있다.",
+        age: "불명",
+        affiliation: "기록 보관소",
+        personality: "침착하고 비밀이 많다.",
+        appearance: "긴 검은 머리, 붉은 눈동자.",
+        note: "열람 주의. 본 기록에는 확인되지 않은 정보가 포함되어 있다."
+      },
+      {
+        id: "002",
+        name: "에녹",
+        symbol: "E",
+        category: "관리 대상 / SUBJECT",
+        description: "누군가를 기다리고 있는 듯한 인물.",
+        intro: "보관소의 복도에서 여러 차례 목격되었다.",
+        age: "기록 누락",
+        affiliation: "미등록",
+        personality: "무심하지만 관찰력이 뛰어나다.",
+        appearance: "은빛 머리카락, 창백한 피부.",
+        note: "목격 기록의 시간대가 서로 일치하지 않는다."
+      },
+      {
+        id: "003",
+        name: "루시안",
+        symbol: "L",
+        category: "접근 제한 / RESTRICTED",
+        description: "존재 자체가 기밀로 분류된 인물.",
+        intro: "상세 정보에 접근할 때마다 기록 일부가 사라진다.",
+        age: "비공개",
+        affiliation: "분류 불가",
+        personality: "친절하고 능청스럽다.",
+        appearance: "짙은 머리카락, 금빛 눈.",
+        note: "관리자 승인 없이 기록을 외부로 반출할 수 없다."
+      }
+    ];
+
+    const grid = document.getElementById("character-grid");
+    const search = document.getElementById("search");
+    const empty = document.getElementById("empty");
+
+    function renderCharacters() {
+      const keyword = search.value.trim().toLowerCase();
+
+      const filtered = characters.filter(character => {
+        const text = [
+          character.name,
+          character.category,
+          character.description
+        ].join(" ").toLowerCase();
+
+        return text.includes(keyword);
+      });
+
+      grid.replaceChildren();
+      empty.style.display = filtered.length ? "none" : "block";
+
+      filtered.forEach(character => {
+        const link = document.createElement("a");
+        link.className = "card";
+        link.href = "profile.html?id=" + encodeURIComponent(character.id);
+
+        const portrait = document.createElement("div");
+        portrait.className = "portrait";
+        portrait.textContent = character.symbol;
+
+        const content = document.createElement("div");
+        content.className = "card-content";
+
+        const number = document.createElement("div");
+        number.className = "number";
+        number.textContent = "RECORD NO. " + character.id;
+
+        const name = document.createElement("h3");
+        name.className = "name";
+        name.textContent = character.name;
+
+        const category = document.createElement("div");
+        category.className = "category";
+        category.textContent = character.category;
+
+        const description = document.createElement("p");
+        description.className = "description";
+        description.textContent = character.description;
+
+        const open = document.createElement("div");
+        open.className = "open";
+        open.textContent = "기록 열람하기 →";
+
+        content.append(number, name, category, description, open);
+        link.append(portrait, content);
+        grid.appendChild(link);
+      });
+    }
+
+    search.addEventListener("input", renderCharacters);
+    renderCharacters();
+  </script>
+
+<section id="archive-latest-news" class="archive-news">
+  <p class="archive-news-kicker">ARCHIVE BULLETIN</p>
+  <h2>LATEST DISPATCHES</h2>
+  <p class="archive-news-intro">
+    기록 보관소에서 전해지는 최신 소식.
+  </p>
+
+  <div id="latest-news-list">
+    <p>기록을 불러오는 중...</p>
+  </div>
+
+  <a class="archive-news-link" href="news.html">
+    전체 소식 열람하기 →
+  </a>
+
+  <p class="archive-admin-link">
+    <a href="admin.html">관리자 전용 기록실</a>
+  </p>
+</section>
+
+<style>
+.archive-news {
+  max-width: 900px;
+  margin: 60px auto;
+  padding: 30px;
+  color: #ded6d0;
+  background: #171416;
+  border: 1px solid #514047;
+  box-sizing: border-box;
+}
+.archive-news-kicker {
+  color: #b59a87;
+  letter-spacing: 0.22em;
+  font-size: 0.75rem;
+}
+.archive-news h2 {
+  letter-spacing: 0.12em;
+  font-weight: normal;
+}
+.archive-news-intro {
+  color: #aaa0a0;
+}
+.archive-news-item {
+  padding: 18px 0;
+  border-top: 1px solid #44383d;
+}
+.archive-news-item small {
+  color: #b59a87;
+  letter-spacing: 0.08em;
+}
+.archive-news-item h3 {
+  margin: 8px 0;
+}
+.archive-news-item p {
+  line-height: 1.8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.archive-news-link,
+.archive-admin-link a {
+  color: #d4b69e;
+}
+.archive-news-link {
+  display: inline-block;
+  margin-top: 20px;
+}
+.archive-admin-link {
+  margin-top: 28px;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script>
+(async function () {
+  const target = document.getElementById("latest-news-list");
+
+  try {
+    const { data, error } = await window.archiveSupabase
+      .from("archive_news")
+      .select("id, category, title, body, created_at")
+      .order("created_at", { ascending: false })
+      .limit(3);
+
+    if (error) throw error;
+
+    target.replaceChildren();
+
+    if (!data || data.length === 0) {
+      target.textContent = "아직 등록된 소식이 없습니다.";
+      return;
+    }
+
+    for (const item of data) {
+      const article = document.createElement("article");
+      article.className = "archive-news-item";
+
+      const meta = document.createElement("small");
+      meta.textContent =
+        item.category + " · " +
+        new Date(item.created_at).toLocaleDateString("ko-KR");
+
+      const heading = document.createElement("h3");
+      heading.textContent = item.title;
+
+      const body = document.createElement("p");
+      body.textContent = item.body;
+
+      article.append(meta, heading, body);
+      target.append(article);
+    }
+  } catch (error) {
+    console.error(error);
+    target.textContent =
+      "소식을 불러오지 못했습니다. 데이터베이스 설정을 확인해 주세요.";
+  }
+})();
+</script>
+</body>
+</html>
+</body>
+</html>

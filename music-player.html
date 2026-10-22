@@ -1,0 +1,112 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARCHIVE MUSIC</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #101014;
+      color: #eee8dc;
+      font-family: Georgia, serif;
+    }
+
+    .player {
+      width: min(340px, 92vw);
+      padding: 24px;
+      border: 1px solid #756347;
+      background: #19171a;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 17px;
+      letter-spacing: 3px;
+    }
+
+    p {
+      color: #b8aa91;
+      font-size: 12px;
+      letter-spacing: 2px;
+    }
+
+    button, input {
+      accent-color: #b8a078;
+    }
+
+    button {
+      margin: 12px 0;
+      padding: 10px 18px;
+      color: #eee8dc;
+      background: #29252a;
+      border: 1px solid #756347;
+      cursor: pointer;
+    }
+
+    input[type="range"] { width: 100%; }
+  </style>
+</head>
+<body>
+  <main class="player">
+    <h2>THE UNKNOWN ARCHIVE</h2>
+    <p>ARCHIVE MUSIC SYSTEM</p>
+
+    <button id="toggle">▶ MUSIC PLAY</button>
+
+    <p>VOLUME</p>
+    <input id="volume" type="range"
+      min="0" max="1" step="0.01" value="0.25">
+
+    <p id="status">READY</p>
+  </main>
+
+  <audio id="music" loop preload="auto">
+    <source src="music/main.mp3.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    const music = document.getElementById("music");
+    const toggle = document.getElementById("toggle");
+    const volume = document.getElementById("volume");
+    const status = document.getElementById("status");
+
+    music.volume = 0.25;
+
+    toggle.addEventListener("click", async () => {
+      if (music.paused) {
+        try {
+          await music.play();
+          toggle.textContent = "Ⅱ MUSIC PAUSE";
+          status.textContent = "NOW PLAYING";
+        } catch (error) {
+          status.textContent = "PLAYBACK FAILED";
+        }
+      } else {
+        music.pause();
+        toggle.textContent = "▶ MUSIC PLAY";
+        status.textContent = "PAUSED";
+      }
+    });
+
+    volume.addEventListener("input", () => {
+      music.volume = Number(volume.value);
+    });
+
+    music.addEventListener("ended", () => {
+      toggle.textContent = "▶ MUSIC PLAY";
+      status.textContent = "READY";
+    });
+
+    music.addEventListener("error", () => {
+      status.textContent = "CHECK MUSIC FILE PATH";
+    });
+  </script>
+</body>
+</html>

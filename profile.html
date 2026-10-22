@@ -156,6 +156,7 @@
       .portrait { min-height: 260px; }
       .field { grid-template-columns: 75px 1fr; }
     }
+
   </style>
 </head>
 
@@ -166,9 +167,10 @@
     <a class="back" href="index.html">← 기록 보관소로 돌아가기</a>
 
     <div id="record">
-      <p class="eyebrow">PERSONNEL FILE</p>
-      <p class="intro">기록을 불러오는 중...</p>
-    </div>
+  <p class="eyebrow">PERSONNEL FILE</p>
+  <p class="intro">기록을 불러오는 중...</p>
+</div>
+
   </main>
 
   <footer>THE UNKNOWN ARCHIVE · RESTRICTED COLLECTION</footer>
@@ -180,14 +182,14 @@
     const characters = [
       {
         id: "001",
-        name: "아르카",
+        name: "델레졘",
         symbol: "A",
         category: "분류 불명 / UNKNOWN",
         intro: "최초로 등록된 미확인 인물. 일부 기록이 삭제되어 있다.",
         age: "불명",
         affiliation: "기록 보관소",
-        personality: "침착하고 비밀이 많다.",
-        appearance: "긴 검은 머리, 붉은 눈동자.",
+        personality: "말 수가 적고 책임감이 넘친다.",
+        appearance: "샹들리에. 양갈래 머리가 특징.",
         note: "열람 주의. 본 기록에는 확인되지 않은 정보가 포함되어 있다."
       },
       {
@@ -287,5 +289,6 @@
       );
     }
   </script>
+
 </body>
 </html>

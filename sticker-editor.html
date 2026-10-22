@@ -1,0 +1,502 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>STICKER WORKROOM | THE UNKNOWN ARCHIVE</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      background: #101014;
+      color: #eee8dc;
+      font-family: Georgia, "Malgun Gothic", sans-serif;
+    }
+
+    h1 { letter-spacing: 3px; font-size: 25px; }
+    p { color: #bcb5aa; line-height: 1.7; }
+
+    .panel {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 18px 0;
+      align-items: center;
+    }
+
+    select, button, input {
+      background: #201e24;
+      color: #eee8dc;
+      border: 1px solid #655b69;
+      padding: 10px;
+      border-radius: 4px;
+      max-width: 100%;
+    }
+
+    button { cursor: pointer; }
+    button:hover { background: #39313e; }
+
+    #stage {
+      position: relative;
+      width: 100%;
+      height: 480px;
+      overflow: hidden;
+      border: 1px solid #655b69;
+      background:
+        radial-gradient(ellipse at center, #25212a 0%, #111014 75%);
+    }
+
+    #stage::after {
+      content: "THE UNKNOWN ARCHIVE";
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: #ffffff0c;
+      font-size: clamp(18px, 5vw, 42px);
+      letter-spacing: 5px;
+      pointer-events: none;
+    }
+
+    .sticker {
+      position: absolute;
+      transform-origin: center;
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+      filter:
+        drop-shadow(0 0 2px white)
+        drop-shadow(0 0 4px white)
+        drop-shadow(0 3px 5px #000);
+      z-index: 2;
+    }
+
+    .sticker.selected {
+      outline: 1px dashed #d8c5ef;
+      outline-offset: 5px;
+    }
+
+    .sticker img {
+      display: block;
+      width: 100%;
+      height: auto;
+      pointer-events: none;
+    }
+
+    .status {
+      min-height: 28px;
+      color: #c7b2df;
+      overflow-wrap: anywhere;
+    }
+
+    .hint { font-size: 13px; }
+  </style>
+</head>
+
+<body>
+  <main class="panel">
+    <h1>STICKER WORKROOM</h1>
+    <p>
+      THE UNKNOWN ARCHIVE — 관리자 스티커 작업실<br>
+      페이지를 선택하고 스티커를 배치한 뒤 저장하세요.
+    </p>
+
+    <div class="controls">
+      <label for="pageSelect">대상 페이지</label>
+      <select id="pageSelect">
+        <option value="home">메인 페이지</option>
+        <option value="character">캐릭터 프로필</option>
+        <option value="news">소식 열람함</option>
+      </select>
+
+      <label for="imageInput">이미지 추가</label>
+      <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+    </div>
+
+    <div class="controls">
+      <label for="sizeInput">크기</label>
+      <input id="sizeInput" type="range" min="20" max="300" value="100">
+
+      <label for="rotationInput">회전</label>
+      <input id="rotationInput" type="range" min="-180" max="180" value="0">
+    </div>
+
+    <div class="controls">
+      <button id="saveButton">스티커 저장</button>
+      <button id="deleteButton">선택 스티커 삭제</button>
+      <button id="reloadButton">저장 목록 새로고침</button>
+    </div>
+
+    <div id="stage" aria-label="스티커 배치 작업 영역"></div>
+
+    <p class="hint">
+      스티커를 선택한 다음 드래그하여 이동할 수 있어요.
+      크기와 회전은 위의 슬라이더로 조절하세요.
+    </p>
+    <p id="status" class="status" role="status">연결을 확인하고 있습니다...</p>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+
+  <script>
+    (() => {
+      const client = window.archiveSupabase;
+      const stage = document.getElementById("stage");
+      const pageSelect = document.getElementById("pageSelect");
+      const imageInput = document.getElementById("imageInput");
+      const sizeInput = document.getElementById("sizeInput");
+      const rotationInput = document.getElementById("rotationInput");
+      const saveButton = document.getElementById("saveButton");
+      const deleteButton = document.getElementById("deleteButton");
+      const reloadButton = document.getElementById("reloadButton");
+      const status = document.getElementById("status");
+
+      let stickers = [];
+      let selected = null;
+      let isAdmin = false;
+      let sessionUser = null;
+      let pendingImage = null;
+      let drag = null;
+
+      const ADMIN_EMAIL = "inoejoha@gmail.com";
+      const BUCKET = "archive-stickers";
+
+      function message(text) {
+        status.textContent = text;
+      }
+
+      function selectSticker(sticker) {
+        selected = sticker;
+        document.querySelectorAll(".sticker").forEach(el => {
+          el.classList.toggle("selected", el === sticker);
+        });
+
+        if (sticker) {
+          sizeInput.value = sticker.dataset.width;
+          rotationInput.value = sticker.dataset.rotation;
+        }
+      }
+
+      function makeSticker(record) {
+        const el = document.createElement("div");
+        el.className = "sticker";
+        el.dataset.id = record.id || "";
+        el.dataset.x = record.x_percent ?? 50;
+        el.dataset.y = record.y_percent ?? 50;
+        el.dataset.width = record.width_px ?? 100;
+        el.dataset.rotation = record.rotation ?? 0;
+        el.dataset.imageUrl = record.image_url || "";
+
+        const img = document.createElement("img");
+        img.src = record.image_url;
+        img.alt = "보관소 스티커";
+        img.draggable = false;
+        el.appendChild(img);
+
+        function position() {
+          el.style.left = el.dataset.x + "%";
+          el.style.top = el.dataset.y + "%";
+          el.style.width = el.dataset.width + "px";
+          el.style.transform =
+            "translate(-50%, -50%) rotate(" + el.dataset.rotation + "deg)";
+        }
+
+        position();
+        el._position = position;
+
+        el.addEventListener("pointerdown", event => {
+          selectSticker(el);
+
+          if (!isAdmin) return;
+
+          event.preventDefault();
+          el.setPointerCapture(event.pointerId);
+          drag = {
+            el,
+            startX: event.clientX,
+            startY: event.clientY,
+            originalX: Number(el.dataset.x),
+            originalY: Number(el.dataset.y)
+          };
+        });
+
+        el.addEventListener("pointermove", event => {
+          if (!drag || drag.el !== el) return;
+
+          const rect = stage.getBoundingClientRect();
+          const dx = (event.clientX - drag.startX) / rect.width * 100;
+          const dy = (event.clientY - drag.startY) / rect.height * 100;
+
+          el.dataset.x = Math.max(0, Math.min(100, drag.originalX + dx));
+          el.dataset.y = Math.max(0, Math.min(100, drag.originalY + dy));
+          position();
+        });
+
+        el.addEventListener("pointerup", () => {
+          if (drag && drag.el === el) drag = null;
+        });
+
+        el.addEventListener("pointercancel", () => {
+          if (drag && drag.el === el) drag = null;
+        });
+
+        stage.appendChild(el);
+        return el;
+      }
+
+      function clearStage() {
+        stage.replaceChildren();
+        selected = null;
+        stickers = [];
+      }
+
+      async function checkLogin() {
+        if (!client) {
+          message("Supabase 연결을 확인할 수 없습니다. 설정 파일을 확인해 주세요.");
+          return false;
+        }
+
+        const { data, error } = await client.auth.getSession();
+
+        if (error) {
+          message("로그인 상태를 확인하지 못했습니다: " + error.message);
+          return false;
+        }
+
+        sessionUser = data.session?.user || null;
+        isAdmin = !!sessionUser &&
+          sessionUser.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+
+        if (!isAdmin) {
+          message("미리보기 모드입니다. 편집하려면 관리자 로그인이 필요합니다.");
+        } else {
+          message("관리자 인증 완료. 스티커를 편집할 수 있습니다.");
+        }
+
+        updateControls();
+        return true;
+      }
+
+      function updateControls() {
+        imageInput.disabled = !isAdmin;
+        sizeInput.disabled = !isAdmin;
+        rotationInput.disabled = !isAdmin;
+        saveButton.disabled = !isAdmin;
+        deleteButton.disabled = !isAdmin;
+      }
+
+      async function loadStickers() {
+        clearStage();
+        message("스티커를 불러오는 중...");
+
+        const { data, error } = await client
+          .from("archive_stickers")
+          .select("id, page_key, image_url, x_percent, y_percent, width_px, rotation")
+          .eq("page_key", pageSelect.value);
+
+        if (error) {
+          message("목록을 불러오지 못했습니다: " + error.message);
+          return;
+        }
+
+        (data || []).forEach(record => {
+          stickers.push(makeSticker(record));
+        });
+
+        message(
+          isAdmin
+            ? "스티커 " + stickers.length + "개를 불러왔습니다."
+            : "보기 전용 모드 — 스티커 " + stickers.length + "개"
+        );
+      }
+
+      imageInput.addEventListener("change", () => {
+        const file = imageInput.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+          message("이미지 파일만 선택할 수 있습니다.");
+          imageInput.value = "";
+          return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+          message("이미지는 5MB 이하로 선택해 주세요.");
+          imageInput.value = "";
+          return;
+        }
+
+        if (pendingImage) URL.revokeObjectURL(pendingImage);
+        pendingImage = URL.createObjectURL(file);
+
+        const preview = makeSticker({
+          image_url: pendingImage,
+          x_percent: 50,
+          y_percent: 50,
+          width_px: Number(sizeInput.value),
+          rotation: Number(rotationInput.value)
+        });
+
+        stickers.push(preview);
+        selectSticker(preview);
+        message("미리보기 이미지가 추가됐어요. 저장 버튼을 눌러 저장하세요.");
+      });
+
+      sizeInput.addEventListener("input", () => {
+        if (!selected || !isAdmin) return;
+        selected.dataset.width = sizeInput.value;
+        selected._position();
+      });
+
+      rotationInput.addEventListener("input", () => {
+        if (!selected || !isAdmin) return;
+        selected.dataset.rotation = rotationInput.value;
+        selected._position();
+      });
+
+      saveButton.addEventListener("click", async () => {
+        if (!isAdmin || !sessionUser) {
+          message("관리자 로그인 후 이용해 주세요.");
+          return;
+        }
+
+        if (!selected) {
+          message("먼저 저장할 스티커를 선택해 주세요.");
+          return;
+        }
+
+        const originalLabel = saveButton.textContent;
+        saveButton.disabled = true;
+        saveButton.textContent = "저장 중...";
+
+        try {
+          let imageUrl = selected.dataset.imageUrl;
+
+          if (imageUrl.startsWith("blob:")) {
+            const file = imageInput.files?.[0];
+            if (!file) {
+              throw new Error("저장할 이미지 파일을 다시 선택해 주세요.");
+            }
+
+            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+            const path = sessionUser.id + "/" + Date.now() + "-" + safeName;
+
+            const { error: uploadError } = await client.storage
+              .from(BUCKET)
+              .upload(path, file, { upsert: false });
+
+            if (uploadError) throw uploadError;
+
+            const { data: urlData } = client.storage
+              .from(BUCKET)
+              .getPublicUrl(path);
+
+            imageUrl = urlData.publicUrl;
+          }
+
+          const record = {
+            page_key: pageSelect.value,
+            image_url: imageUrl,
+            x_percent: Number(selected.dataset.x),
+            y_percent: Number(selected.dataset.y),
+            width_px: Number(selected.dataset.width),
+            rotation: Number(selected.dataset.rotation)
+          };
+
+          const id = selected.dataset.id;
+          let result;
+
+          if (id) {
+            result = await client
+              .from("archive_stickers")
+              .update(record)
+              .eq("id", id);
+          } else {
+            result = await client
+              .from("archive_stickers")
+              .insert(record)
+              .select("id")
+              .single();
+          }
+
+          if (result.error) throw result.error;
+
+          message("저장 완료! 저장된 스티커를 다시 불러옵니다.");
+          imageInput.value = "";
+          if (pendingImage) URL.revokeObjectURL(pendingImage);
+          pendingImage = null;
+          await loadStickers();
+        } catch (error) {
+          message("저장 실패: " + (error.message || "알 수 없는 오류"));
+        } finally {
+          saveButton.textContent = originalLabel;
+          updateControls();
+        }
+      });
+
+      deleteButton.addEventListener("click", async () => {
+        if (!isAdmin || !sessionUser) {
+          message("관리자 로그인 후 이용해 주세요.");
+          return;
+        }
+
+        if (!selected) {
+          message("먼저 삭제할 스티커를 선택해 주세요.");
+          return;
+        }
+
+        const id = selected.dataset.id;
+        if (!id) {
+          stickers = stickers.filter(item => item !== selected);
+          selected.remove();
+          selected = null;
+          message("저장 전 미리보기 스티커를 제거했습니다.");
+          return;
+        }
+
+        if (!confirm("이 스티커를 삭제할까요?")) return;
+
+        const { error } = await client
+          .from("archive_stickers")
+          .delete()
+          .eq("id", id);
+
+        if (error) {
+          message("삭제 실패: " + error.message);
+          return;
+        }
+
+        message("스티커 정보를 삭제했습니다.");
+        await loadStickers();
+      });
+
+      reloadButton.addEventListener("click", loadStickers);
+
+      pageSelect.addEventListener("change", loadStickers);
+
+      async function start() {
+        if (!client) {
+          message("Supabase 설정을 불러오지 못했습니다. 파일 이름과 경로를 확인해 주세요.");
+          updateControls();
+          return;
+        }
+
+        await checkLogin();
+        await loadStickers();
+      }
+
+      start();
+    })();
+  </script>
+</body>
+</html>

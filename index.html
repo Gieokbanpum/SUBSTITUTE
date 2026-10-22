@@ -6,6 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>THE UNKNOWN ARCHIVE</title>
   <style>
+    @font-face {
+  font-family: "Fantasy Narratives";
+  src: url("fonts/Fantasy-Narratives-Demo-BF660bb06b4f99c.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
     * { box-sizing: border-box; }
 
     body {
@@ -258,6 +265,15 @@
   background: #30242a;
   border-color: #c6a878;
 }
+/* Fantasy Narratives: 영문 로고와 제목 전용 */
+#archive-entry > p:first-child,
+#archive-entry > h1,
+#archive-enter-button,
+.topbar,
+main > .eyebrow,
+main > h1 {
+  font-family: "Fantasy Narratives", Georgia, serif;
+}
 </style>
 </head>
 
@@ -266,7 +282,7 @@
   <!-- 입장 전 화면 -->
   <div id="archive-entry">
     <p>RESTRICTED RECORDS</p>
-    <h1>THE UNKNOWN ARCHIVE</h1>
+    <h1>SUBSTITUTE</h1>
     <p>기록되지 않은 세계에 접근하시겠습니까?</p>
     <button id="archive-enter-button" type="button">
       ENTER THE ARCHIVE
@@ -285,8 +301,8 @@
 
     <p class="intro">
       기록되지 않은 세계가 있다.<br>
-      잊힌 이름과 사라진 존재들.<br>
-      이곳은 그 흔적을 수집하는 비밀 기록 보관소.
+      사라져 가는 인간들, 그들을 대체하는 존재들.<br>
+      이곳은 그들을 기록하는 보관소이다.
     </p>
 
     <div class="divider"></div>
@@ -331,21 +347,21 @@
       },
       {
         id: "002",
-        name: "에녹",
-        symbol: "E",
-        category: "관리 대상 / SUBJECT",
-        description: "누군가를 기다리고 있는 듯한 인물.",
-        intro: "보관소의 복도에서 여러 차례 목격되었다.",
-        age: "기록 누락",
-        affiliation: "미등록",
-        personality: "무심하지만 관찰력이 뛰어나다.",
-        appearance: "은빛 머리카락, 창백한 피부.",
-        note: "목격 기록의 시간대가 서로 일치하지 않는다."
+        name: "셔플",
+        symbol: "S",
+        category: "CASINO DEALER",
+        description: "당신을 흥미롭게 쳐다보는 존재.",
+        intro: "어서오십시오! 당신의 딜러가 여깄습니다!",
+        age: "...",
+        affiliation: "AESTHETICS",
+        personality: "능글맞고 장난기가 많다.",
+        appearance: "검은 기체 위로 트럼프 카드가 떠다니는 형태. 늘 장갑을 끼고 유니폼을 입는다.",
+        note: "카드를 다루는 능력 하나는 제일이다. 누군가에게 배웠을 것으로 추정."
       },
       {
         id: "003",
-        name: "루시안",
-        symbol: "L",
+        name: "클락 와쳐",
+        symbol: "C",
         category: "접근 제한 / RESTRICTED",
         description: "존재 자체가 기밀로 분류된 인물.",
         intro: "상세 정보에 접근할 때마다 기록 일부가 사라진다.",
@@ -354,6 +370,32 @@
         personality: "친절하고 능청스럽다.",
         appearance: "짙은 머리카락, 금빛 눈.",
         note: "관리자 승인 없이 기록을 외부로 반출할 수 없다."
+      },
+            {
+        id: "004",
+        name: "로저 블랙",
+        symbol: "R",
+        category: "분류 불명 / UNKNOWN",
+        description: "상세 기록이 아직 등록되지 않은 인물.",
+        intro: "추가 기록 예정.",
+        age: "미정",
+        affiliation: "미등록",
+        personality: "미정",
+        appearance: "미정",
+        note: "추후 기록 갱신 예정."
+      },
+      {
+        id: "005",
+        name: "닥터C",
+        symbol: "D",
+        category: "분류 불명 / UNKNOWN",
+        description: "상세 기록이 아직 등록되지 않은 인물.",
+        intro: "추가 기록 예정.",
+        age: "미정",
+        affiliation: "미등록",
+        personality: "미정",
+        appearance: "미정",
+        note: "추후 기록 갱신 예정."
       }
     ];
 
